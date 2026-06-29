@@ -2,7 +2,7 @@
 	"id": "wiki-to-note",
 	"name": "Wiki To Note",
 	"version": "1.1.1",
-	"minAppVersion": "0.15.0",
+	"minAppVersion": "1.8.7",
 	"description": "Generate a Note from a Wikipedia article.",
 	"author": "Johannes Hans",
 	"authorUrl": "https://github.com/CommandJoo",

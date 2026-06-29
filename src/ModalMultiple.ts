@@ -55,16 +55,16 @@ class WikiMultiModal extends Modal {
 			cls: "wiki-suggestions"
 		});
 
-		suggestionsEl.style.display = "none";
+		suggestionsEl.addClass("wiki-suggestions-hidden");
 
 		this.inputs.push(input);
 
-		input.addEventListener("input", async () => {
-			await this.onInputChange(input, suggestionsEl);
+		input.addEventListener("input", () => {
+			void this.onInputChange(input, suggestionsEl);
 		});
 
 		input.addEventListener("blur", () => {
-			setTimeout(() => {
+			window.setTimeout(() => {
 				this.hideSuggestions(suggestionsEl);
 			}, 100);
 		});
@@ -145,11 +145,11 @@ class WikiMultiModal extends Modal {
 			});
 		}
 
-		suggestionsEl.style.display = "block";
+		suggestionsEl.removeClass("wiki-suggestions-hidden");
 	}
 
 	private hideSuggestions(suggestionsEl: HTMLElement) {
-		suggestionsEl.style.display = "none";
+		suggestionsEl.addClass("wiki-suggestions-hidden");
 		suggestionsEl.empty();
 	}
 
@@ -163,7 +163,7 @@ class WikiMultiModal extends Modal {
 			const value = input.value.trim();
 
 			if (value !== "") {
-				await new WikipediaNote(this.settings).create(value);
+				await new WikipediaNote(this.settings, this.app).create(value);
 			}
 		}
 	}

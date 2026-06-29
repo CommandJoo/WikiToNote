@@ -25,12 +25,12 @@ class WikiModal extends Modal {
 		this.input.id = 'text-input';
 
 		this.suggestionsEl = searchWrapper.createDiv({cls: "wiki-suggestions"});
-		this.suggestionsEl.style.display = "none";
+		this.suggestionsEl.addClass("wiki-suggestions-hidden");
 
-		this.input.addEventListener("input", () => this.onInputChange());
+		this.input.addEventListener("input", () => {void this.onInputChange()});
 
 		this.input.addEventListener("blur", () => {
-			setTimeout(() => this.hideSuggestions(), 100);
+			window.setTimeout(() => this.hideSuggestions(), 100);
 		});
 
 		const submitButton = contentEl.createEl('button', { text: 'Generate', cls: "wiki-button-generate" });
@@ -74,11 +74,11 @@ class WikiModal extends Modal {
 			});
 		});
 
-		this.suggestionsEl.style.display = "block";
+		this.suggestionsEl.removeClass("wiki-suggestions-hidden");
 	}
 
 	private hideSuggestions() {
-		this.suggestionsEl.style.display = "none";
+		this.suggestionsEl.addClass("wiki-suggestions-hidden");
 		this.suggestionsEl.empty();
 	}
 
@@ -88,7 +88,7 @@ class WikiModal extends Modal {
 	}
 
 	async handleSubmit() {
-		if(this.input.value != "") await new WikipediaNote(this.settings).create(this.input.value);
+		if(this.input.value != "") await new WikipediaNote(this.settings, this.app).create(this.input.value);
 	}
 }
 

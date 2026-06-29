@@ -1,26 +1,35 @@
 import {WikiPluginSettings} from "./PluginSettings";
 import * as cheerio from "cheerio";
 import TurndownService from "turndown";
-import {Notice, requestUrl} from "obsidian";
+import {App, Notice, requestUrl} from "obsidian";
+
+
 
 class WikipediaNote {
 	private settings: WikiPluginSettings;
+	private app: App;
 
-	constructor(settings: WikiPluginSettings) {
+	constructor(settings: WikiPluginSettings, app: App) {
 		this.settings = settings;
+		this.app = app;
 	}
 
 	async create(article: string) {
-		const title = `${article.replace(/[^\p{L}\p{N}]/gu, "_")}`;
-		const content = `---\n
+		const title = article.replace(/[^\p{L}\p{N}]/gu, "_");
+
+		const content = `---
 tags:
 - wikipedia-note
----\n
-# ${article}\n
-___\n
+---
+
+# ${article}
+
+___
+
 ${await fetchWikipediaMarkdown(article, this.settings)}
-`
-		await createAndOpenNote(title, content)
+`;
+
+		await createAndOpenNote(title, content);
 	}
 }
 
@@ -53,9 +62,9 @@ async function cleanWikiHtml(title: string, countryPrefix: string) {
 	}
 }
 
-async function fetchWikipediaMarkdown(title: string, settings: WikiPluginSettings) {
+async function fetchWikipediaMarkdown(title: string, settings: WikiPluginSettings): Promise<string> {
 	const $ = await cleanWikiHtml(title, settings.countryPrefix);
-	if (!$) return;
+	if (!$) return "";
 
 	$(".hatnote").each((_, hatnote) => {
 		const $hatnote = $(hatnote);
@@ -139,21 +148,21 @@ async function fetchWikipediaMarkdown(title: string, settings: WikiPluginSetting
 	turndownService.keep("table")
 	turndownService.addRule("figures", {
 		filter: "span",
-		replacement: (content, node) => {
-			if (node) {
-				if ("classList" in node && node?.classList.contains("figure")) {
-					const serializer = new XMLSerializer();
-					return serializer.serializeToString(node);
-				}
+		replacement: (_content: string, node: Node) => {
+			if (node instanceof Element && node.classList.contains("figure")) {
+				const serializer = new XMLSerializer();
+				return serializer.serializeToString(node);
 			}
+
 			return "";
 		}
-	})
+	});
 	turndownService.addRule('underscoreHeaders', {
 		filter: ['h1', 'h2'],
-		replacement: function (content, node) {
-			const level = node.nodeName.toLowerCase() === 'h1' ? 1 : 2;
-			const underlineChar = '_';
+		replacement: (content: string, node: Node) => {
+			const level = node.nodeName.toLowerCase() === "h1" ? 1 : 2;
+			const underlineChar = "_";
+
 			return `${"#".repeat(level)} ${content}\n${underlineChar.repeat(content.length)}\n`;
 		}
 	});

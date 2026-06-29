@@ -1,20 +1,29 @@
 import {WikiPluginSettings} from "./PluginSettings";
 import {requestUrl} from "obsidian";
 
-function debounce<T extends (...args: any[]) => Promise<any>>(
-	fn: T,
+function debounce<TArgs extends unknown[], TResult>(
+	fn: (...args: TArgs) => Promise<TResult>,
 	wait: number
-): (...args: Parameters<T>) => Promise<ReturnType<T>> {
-	let timeout: ReturnType<typeof setTimeout> | null = null;
-	let latestResolve: ((value: any) => void) | null = null;
+): (...args: TArgs) => Promise<TResult> {
+	let timeout: number | undefined;
+	let latestResolve: ((value: TResult) => void) | null = null;
 
-	return (...args: Parameters<T>) => {
-		return new Promise((resolve) => {
-			if (timeout) clearTimeout(timeout);
+	return (...args: TArgs) => {
+		return new Promise<TResult>((resolve, reject) => {
+			if (timeout !== undefined) {
+				window.clearTimeout(timeout);
+			}
+
 			latestResolve = resolve;
-			timeout = setTimeout(async () => {
-				const result = await fn(...args);
-				if (latestResolve === resolve) resolve(result);
+
+			timeout = window.setTimeout(() => {
+				void fn(...args)
+					.then((result) => {
+						if (latestResolve === resolve) {
+							resolve(result);
+						}
+					})
+					.catch(reject);
 			}, wait);
 		});
 	};

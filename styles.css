@@ -20,6 +20,10 @@
 	width: 100%;
 }
 
+.wiki-suggestions-hidden {
+	display: none;
+}
+
 .wiki-search-wrapper input {
 	width: 100%;
 	box-sizing: border-box;
