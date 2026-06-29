@@ -94,33 +94,64 @@ async function fetchWikipediaMarkdown(title: string, settings: WikiPluginSetting
 			`
 		$figure.replaceWith(`${html}`);
 	});
+	$("sup").each((_, sup) => {
+		const $sup = $(sup);
+		const $a = $sup.find("a");
 
+		const href = $a.attr("href");
+		const text = $a.text().replace(/[[\]]/g, "");
+
+		if (href?.includes("#cite_note")) {
+			$sup.replaceWith(`[^${text}]`);
+		}
+	});
 	$("table").each((_, table) => {
 		const $table = $(table);
 
-		$table.find("img").each((_, img) => {
-			const newImg = $(img);
-			let src = $(img).attr("src");
-			if (src && src.startsWith("//")) {
-				src = `https:${src}`;
-				newImg.attr("src", src);
-			}
-
-			let srcset = $(img).attr("srcset");
-			if (srcset && srcset.startsWith("//")) {
-				srcset = `https:${srcset}`;
-				newImg.attr("srcset", srcset);
-			}
-
-			$(img).replaceWith(newImg);
-		});
-		$table.css("background-color", settings.tableBackground);
-		$table.css("border", `1px solid ${settings.tableBackground}`);
-		$table.css("overflow", "scroll");
-		$table.replaceWith($table);
-
-		$table.removeAttr("cellpadding");
+		$table.removeAttr("id");
+		$table.removeAttr("class");
+		$table.removeAttr("typeof");
+		$table.removeAttr("data-mw");
 		$table.removeAttr("summary");
+		$table.removeAttr("cellpadding");
+
+		$table.find("*").each((_, child) => {
+			const $child = $(child);
+
+			$child.removeAttr("id");
+			$child.removeAttr("class");
+			$child.removeAttr("typeof");
+			$child.removeAttr("data-mw");
+			$child.removeAttr("about");
+			$child.removeAttr("resource");
+			$child.removeAttr("rel");
+			$child.removeAttr("xmlns");
+
+			// $child.removeAttr("style");
+		});
+
+		$table.find("img").each((_, img) => {
+			const $img = $(img);
+
+			let src = $img.attr("src");
+			if (src?.startsWith("//")) {
+				src = `https:${src}`;
+				$img.attr("src", src);
+			}
+
+			let srcset = $img.attr("srcset");
+			if (srcset?.startsWith("//")) {
+				srcset = `https:${srcset}`;
+				$img.attr("srcset", srcset);
+			}
+
+			$img.removeAttr("resource");
+		});
+
+		$table.attr(
+			"style",
+			`background-color: ${settings.tableBackground}; border: 1px solid ${settings.tableBackground}; overflow: auto;`
+		);
 	});
 
 	$("img").each((_, img) => {
@@ -143,18 +174,49 @@ async function fetchWikipediaMarkdown(title: string, settings: WikiPluginSetting
 		}
 	});
 
+	$("script, style, noscript, iframe, meta, link").remove();
+	$("sup.reference, .mw-editsection, .noprint, .metadata, .navbox, .reflist, .references").remove();
+	$("*").each((_, el) => {
+		const $el = $(el);
+
+		$el.removeAttr("id");
+		$el.removeAttr("typeof");
+		$el.removeAttr("data-mw");
+		$el.removeAttr("about");
+		$el.removeAttr("rel");
+		$el.removeAttr("resource");
+		$el.removeAttr("xmlns");
+	});
+
 	const cleanedHTML = $.html();
 	const turndownService = new TurndownService();
-	turndownService.keep("table")
+
+	turndownService.keep(["table", "thead", "tbody", "tr", "th", "td", "caption"]);
 	turndownService.addRule("figures", {
 		filter: "span",
 		replacement: (_content: string, node: Node) => {
-			if (node instanceof Element && node.classList.contains("figure")) {
+			if (node.instanceOf(Element) && node.classList.contains("figure")) {
 				const serializer = new XMLSerializer();
 				return serializer.serializeToString(node);
 			}
 
 			return "";
+		}
+	});
+	turndownService.addRule("codeBlock", {
+		filter: "pre",
+		replacement: (_content: string, node: Node) => {
+			const text = node.textContent ?? "";
+			return `\n\`\`\`\n${text.trim()}\n\`\`\`\n`;
+		}
+	});
+	turndownService.addRule("inlineCode", {
+		filter: (node: Node) => {
+			return node.nodeName.toLowerCase() === "code"
+				&& node.parentNode?.nodeName.toLowerCase() !== "pre";
+		},
+		replacement: (content: string) => {
+			return `\`${content}\``;
 		}
 	});
 	turndownService.addRule('underscoreHeaders', {
@@ -165,6 +227,10 @@ async function fetchWikipediaMarkdown(title: string, settings: WikiPluginSetting
 
 			return `${"#".repeat(level)} ${content}\n${underlineChar.repeat(content.length)}\n`;
 		}
+	});
+	turndownService.addRule("unwrapGenericHtml", {
+		filter: ["div", "span", "section", "article"],
+		replacement: (content: string) => content
 	});
 
 	return turndownService.turndown(cleanedHTML).replace(/\\([*#_~`>])/g, "$1");
