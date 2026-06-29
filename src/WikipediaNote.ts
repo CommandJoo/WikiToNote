@@ -34,7 +34,11 @@ async function createAndOpenNote(fileName: string, content: string) {
 async function cleanWikiHtml(title: string, countryPrefix: string) {
 	const url = `https://${countryPrefix}.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}`;
 	try {
-		const response = await requestUrl({url, headers: {"User-Agent": "WikiToMarkdownBot/1.0"}});
+		const response = await requestUrl({
+			url,
+			method: "GET",
+			headers: {"User-Agent": "WikiToMarkdown/1.1"}
+		});
 		const $ = cheerio.load(response.text);
 		$("style").remove();
 		const $e = $("*");
@@ -51,7 +55,7 @@ async function cleanWikiHtml(title: string, countryPrefix: string) {
 
 async function fetchWikipediaMarkdown(title: string, settings: WikiPluginSettings) {
 	const $ = await cleanWikiHtml(title, settings.countryPrefix);
-	if(!$) return;
+	if (!$) return;
 
 	$(".hatnote").each((_, hatnote) => {
 		const $hatnote = $(hatnote);

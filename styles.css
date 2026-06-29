@@ -1,14 +1,98 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+/* Modal container */
 .wiki-modal {
-	padding: 20px;
 	display: flex;
 	flex-direction: column;
-    gap: 10px;
+	gap: 12px;
+	max-width: 480px;
 }
+
+.wiki-modal label {
+	font-size: 1.1em;
+	color: var(--text-normal);
+	margin-bottom: 2px;
+}
+
+.wiki-search-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
+}
+
+.wiki-search-wrapper input {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 8px 10px;
+	font-size: 1em;
+	border-radius: var(--radius-s);
+	border: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	color: var(--text-normal);
+}
+
+.wiki-search-wrapper input:focus {
+	outline: none;
+}
+
+.wiki-input-row {
+	position: relative;
+	width: 100%;
+}
+
+.wiki-suggestions {
+
+
+}
+
+.wiki-suggestions {
+	top: calc(100% + 4px);
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-s);
+	max-height: 220px;
+	overflow-y: auto;
+}
+
+.wiki-suggestion-item {
+	padding: 8px 10px;
+	cursor: pointer;
+	border-bottom: 1px solid var(--background-modifier-border-hover);
+}
+
+.wiki-suggestion-item:last-child {
+	border-bottom: none;
+}
+
+.wiki-suggestion-item:hover,
+.wiki-suggestion-item.is-selected {
+	background: var(--background-modifier-hover);
+}
+
+.wiki-suggestion-title {
+	font-size: 0.95em;
+	color: var(--text-normal);
+}
+
+.wiki-suggestion-desc {
+	display: block;
+	font-size: 0.8em;
+	color: var(--text-faint);
+	margin-top: 2px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.wiki-modal button {
+	align-self: flex-end;
+	padding: 6px 16px;
+	border: none;
+	cursor: pointer;
+	font-weight: 500;
+}
+
+.wiki-modal button:hover {
+}
+
+
